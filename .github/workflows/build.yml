@@ -1,0 +1,31 @@
+name: build and deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and push container
+        run: |
+          set -euxo pipefail
+          docker build -f UvA.SecureEduIdInviteProxy/Dockerfile -t "datanosecr.azurecr.io/eduid-invite-proxy:latest" .
+          docker push "datanosecr.azurecr.io/eduid-invite-proxy:latest"
+
+#      - name: Push chart and deploy
+#        env:
+#          UPDATER_SECRET: ${{ secrets.UPDATER_SECRET_DN }}
+#        run: |
+#          VERSION=$(date "+1.0.%Y%m%d%H%M%S")
+#          helm package --version "${VERSION}" --app-version "${VERSION}" charts/dn2-webapi
+#          helm push "dn2-webapi-${VERSION}.tgz" oci://datanosecr.azurecr.io/helm
+#          curl --fail --no-progress-meter "https://api-v2-tst.datanose.nl/gitops-updater?name=dn2-webapi-tst&secret=${UPDATER_SECRET}&version=${VERSION}"
+#          curl --fail --no-progress-meter "https://api-v2-tst.datanose.nl/gitops-updater?name=dn2-webapi-acc&secret=${UPDATER_SECRET}&version=${VERSION}"
