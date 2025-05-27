@@ -28,6 +28,6 @@ jobs:
           docker build -f UvA.SecureEduIdInviteProxy/Dockerfile -t "datanosecr.azurecr.io/eduid-invite-proxy:${TAG}" .
           docker push "datanosecr.azurecr.io/eduid-invite-proxy:${TAG}"
           VERSION=$(date "+1.0.%Y%m%d%H%M%S")
-          helm package --version "${VERSION}" --app-version "${VERSION}" charts/eduid-invite-proxy-pr
-          helm push "eduid-invite-proxy-pr-${VERSION}.tgz" oci://datanosecr.azurecr.io/helm
-          curl --fail --no-progress-meter "https://eduid-invite-proxy-tst.datanose.nl/gitops-updater?name=eduid-invite-proxy-pr&secret=${UPDATER_SECRET}&version=${VERSION}&id=${PR_NUMBER}"
+          # helm package --version "${VERSION}" --app-version "${VERSION}" charts/eduid-invite-proxy-pr
+          # helm push "eduid-invite-proxy-pr-${VERSION}.tgz" oci://datanosecr.azurecr.io/helm
+          # curl --fail --no-progress-meter "https://eduid-invite-proxy-tst.datanose.nl/gitops-updater?name=eduid-invite-proxy-pr&secret=${UPDATER_SECRET}&version=${VERSION}&id=${PR_NUMBER}"
