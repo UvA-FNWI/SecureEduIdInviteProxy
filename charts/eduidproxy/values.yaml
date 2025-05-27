@@ -1,0 +1,11 @@
+hostname: eduid-invite-proxy.local
+repo: datanosecr.azurecr.io
+tag: latest
+certificateName: datanose-nl
+environment: Test
+contentSecurityPolicy: "default-src 'self'"
+
+connectionStrings:
+  appInsights: ""
+
+    
