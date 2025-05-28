@@ -1,6 +1,8 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Serilog;
+using System.Text.RegularExpressions;
 using UvA.SecureEduIdInviteProxy.Auditing;
 using UvA.SecureEduIdInviteProxy.EduIdInviteApi;
 using UvA.SecureEduIdInviteProxy.EduIdInviteApi.Dto;
@@ -11,8 +13,13 @@ namespace UvA.SecureEduIdInviteProxy.Endpoints;
 /// <summary>
 /// Endpoints for handling invitation requests
 /// </summary>
-public static class InvitationEndpoints
+public static partial class InvitationEndpoints
 {
+    [GeneratedRegex(@"^[a-zA-Z0-9-]+$")]
+    private static partial Regex ApiTokenRegex();
+
+    private const int MaxTokenLength = 128;
+    
     /// <summary>
     /// Maps all invitation endpoints to the application
     /// </summary>
@@ -30,28 +37,23 @@ public static class InvitationEndpoints
     /// <summary>
     /// Handles the creation of invitations by proxying requests to the SurfConext Invitation API
     /// </summary>
-    /// <param name="request">The invitation request</param>
-    /// <param name="apiToken">The API token from the request header</param>
-    /// <param name="roleApiTokenConfig">Configuration for role-specific API tokens</param>
-    /// <param name="invitationApiClient">Client for the SurfConext Invitation API</param>
-    /// <param name="logger">Logger</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The result of the invitation creation</returns>
     private static async Task<IResult> CreateInvitation(
         [FromBody] CreateInvitation request,
         [FromHeader(Name = "X-API-TOKEN")] string apiToken,
-        IOptions<RoleApiTokenConfig> roleApiTokenConfig,
+        IOptions<EduIdConfig> eduIdConfig,
         IInvitationApiClient invitationApiClient,
-        ILogger logger,
         IAuditingService auditingService,
         IHttpContextAccessor httpContextAccessor,
         CancellationToken cancellationToken)
     {
         try
         {
-            // Verify that an API token is provided
-            if(string.IsNullOrEmpty(apiToken))
+            // Check that the token is valid (not empty and only contains alphanumeric chars or a dash)
+            if (string.IsNullOrEmpty(apiToken) ||
+                apiToken.Length > MaxTokenLength ||
+                !ApiTokenRegex().IsMatch(apiToken))
             {
+                Log.Debug("Invalid API token received");
                 return Results.Unauthorized();
             }
 
@@ -67,19 +69,19 @@ public static class InvitationEndpoints
             }
             var roleId = request.RoleIdentifiers.First().ToString();
            
-            logger.LogInformation("Received invitation request for {Count} recipients with role ID: {RoleId}", request.Invites.Count, roleId);
+            Log.Information("Received invitation request for {Count} recipients with role ID: {RoleId}", request.Invites.Count, roleId);
             
             // Get the role ID from the request
-            if (!roleApiTokenConfig.Value.Tokens.TryGetValue(roleId, out var expectedToken))
+            if (!eduIdConfig.Value.RoleApiTokens.TryGetValue(roleId, out var expectedToken))
             {
-                logger.LogWarning("No API token configured for role ID {RoleId}", roleId);
+                Log.Information("No API token configured for role ID {RoleId}", roleId);
                 return Results.Unauthorized();
             }
 
             // Verify token
             if (apiToken != expectedToken)
             {
-                logger.LogWarning("API token does not match the configured token for role {RoleId}", roleId);
+                Log.Warning("API token {ApiToken} does not match the configured token for role {RoleId}", apiToken, roleId);
                 return Results.Unauthorized();
             }
 
@@ -90,6 +92,7 @@ public static class InvitationEndpoints
                 var response = await invitationApiClient.CreateInvitationAsync(request, cancellationToken);
                 if (response is null)
                 {
+                    Log.Warning("No response from invitation service, request: {@Request}", request);;
                     return Results.Problem(
                         title: "Error from invitation service",
                         detail: "No response from invitation service",
@@ -105,7 +108,7 @@ public static class InvitationEndpoints
             catch (HttpRequestException ex) when (ex.StatusCode.HasValue)
             {
                 // Propagate the status code from the downstream service
-                logger.LogWarning(ex, "Invitation service returned error {StatusCode}", ex.StatusCode.Value);
+                Log.Warning(ex, "Invitation service returned error {StatusCode}, {@Request}", ex.StatusCode.Value, request);
 
                 // Log the operation to the audit log
                 await auditingService.LogInviteOperationAsync(sourceIp, roleId, false, request.Invites);
@@ -118,7 +121,7 @@ public static class InvitationEndpoints
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing invitation request");
+            Log.Error(ex, "Error processing invitation request: {@Request}", request);;
             return Results.Problem(
                 title: "Error processing invitation request",
                 statusCode: (int)HttpStatusCode.InternalServerError);

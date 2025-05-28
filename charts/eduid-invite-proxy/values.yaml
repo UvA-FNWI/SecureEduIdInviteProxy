@@ -1,0 +1,20 @@
+hostname: eduid-invite-proxy.local
+repo: datanosecr.azurecr.io
+tag: latest
+certificateName: datanose-nl
+environment: Test
+contentSecurityPolicy: "default-src 'self'"
+
+azure:
+  keyvaultName: keyvaultName
+  resourceGroup: resourceGroupName
+  subscriptionId: subscriptionId
+  tenantId: tenantId
+  clientId: clientId
+  identityName: identityName
+  secrets:
+    - name: eduid-invite-proxy-appinsights-connectionstring
+      key: ApplicationInsights__ConnectionString
+    - name: dn2-eduid-invitation-api-token
+      key: EduId__InvitationApiToken
+    

@@ -1,12 +1,14 @@
+using Serilog;
+
 namespace UvA.SecureEduIdInviteProxy.Auditing;
 
 /// <summary>
 /// Implementation of the auditing service that logs to Azure Monitor
 /// </summary>
-public class AzureMonitorAuditingService(ILogger<AzureMonitorAuditingService> logger) : IAuditingService
+public class AzureMonitorAuditingService : IAuditingService
 {
     /// <inheritdoc />
-    public Task LogInviteOperationAsync(string originIpAddress, string roleId, bool isSuccessful, IReadOnlyCollection<string> emailAddresses)
+    public Task LogInviteOperationAsync(string sourceIpAddress, string roleId, bool isSuccessful, IReadOnlyCollection<string> emailAddresses)
     {
         // Create a structured log with all required audit information
         foreach (var emailAddress in emailAddresses)
@@ -14,21 +16,22 @@ public class AzureMonitorAuditingService(ILogger<AzureMonitorAuditingService> lo
             var auditLog = new
             {
                 Timestamp = DateTime.UtcNow,
-                OriginIpAddress = originIpAddress,
+                SourceIpAddress = sourceIpAddress,
                 RoleId = roleId,
                 IsSuccessful = isSuccessful,
                 EmailAddress = emailAddress,
-                OperationType = "InviteOperation"
+                OperationType = "InviteOperation",
+                Category = "AuditLog"
             };
-
+            
             // Log as structured data with the appropriate log level based on success
             if (isSuccessful)
             {
-                logger.LogInformation("Invite operation completed successfully. {@AuditData}", auditLog);
+                Log.Information("Invite operation completed successfully. {@AuditData}", auditLog);
             }
             else
             {
-                logger.LogWarning("Invite operation failed. {@AuditData}", auditLog);
+                Log.Warning("Invite operation failed. {@AuditData}", auditLog);
             }
         }
 

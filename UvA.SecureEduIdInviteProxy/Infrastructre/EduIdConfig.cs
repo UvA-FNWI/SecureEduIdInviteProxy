@@ -14,11 +14,14 @@ public class EduIdConfig
     /// </summary>
     [Required(ErrorMessage = "The SurfConext Invitation API URL is required")]
     [Url(ErrorMessage = "The SurfConext Invitation API URL must be a valid URL")]
-    public string InvitationApiUrl { get; set; } = null!;
+    public string InvitationApiUrl { get; init; } = null!;
     
     /// <summary>
     /// The API token for authenticating with the SurfConext Invitation API
     /// </summary>
     [Required(ErrorMessage = "The SurfConext Invitation API token is required")]
-    public string InvitationApiToken { get; set; } = null!;
+    public string InvitationApiToken { get; init; } = null!;
+    
+    [Required(ErrorMessage = "At least one role-specific API token must be configured")]
+    public Dictionary<string, string> RoleApiTokens { get; init; } = new();
 }

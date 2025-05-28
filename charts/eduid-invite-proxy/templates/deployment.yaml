@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eduid-invite-proxy
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  selector:
+    matchLabels:
+      app: eduid-invite-proxy
+  replicas: 1
+  revisionHistoryLimit: 3
+  template:
+    metadata:
+      labels:
+        app: eduid-invite-proxy
+    spec:
+      containers:
+        - name: eduid-invite-proxy
+          image: "{{ .Values.repo }}/eduid-invite-proxy:{{ .Values.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: DATANOSE_VERSION
+              value: "{{ .Chart.AppVersion }}"
+          envFrom:
+            - configMapRef:
+                name: eduid-invite-proxy-config
+            - secretRef:
+                name: eduid-invite-proxy-secret
+          {{- if .Values.azure }}
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: "/etc/secrets"
+              readOnly: true
+          {{- end }}
+ 
+      {{- if .Values.azure }}
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "eduid-invite-proxy-secretproviderclass"
+      {{- end }}

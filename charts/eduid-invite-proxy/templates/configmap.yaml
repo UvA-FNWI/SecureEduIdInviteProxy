@@ -5,5 +5,3 @@ metadata:
   namespace: "{{ .Release.Namespace }}"
 data:
   DOTNET_ENVIRONMENT: "{{ .Values.environment }}"
-  APPLICATIONINSIGHTS_CONNECTION_STRING: "{{ .Values.connectionStrings.appInsights }}"
-

@@ -1,24 +1,39 @@
-using Microsoft.Extensions.Options;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.OpenApi.Models;
 using UvA.SecureEduIdInviteProxy.Auditing;
 using UvA.SecureEduIdInviteProxy.EduIdInviteApi;
 using UvA.SecureEduIdInviteProxy.Endpoints;
 using UvA.SecureEduIdInviteProxy.Infrastructre;
+using Serilog;
 
-Console.WriteLine("UvA.SecureEduIdInviteProxy starting up");
+Console.WriteLine("SecureEduIdInviteProxy initializing");
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApplicationInsightsTelemetry();
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("ApplicationName", "EduIdInviteProxy")
+        .WriteTo.ApplicationInsights(
+            services.GetRequiredService<TelemetryConfiguration>(),
+            TelemetryConverter.Traces);
+});
+
 // Add services to the container
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+//builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "SecureEduIdInviteProxy API", Version = "v1" });
+});
 builder.Services.AddHttpContextAccessor();
-
 
 // Register the SurfConext Invitation API client
 builder.Services.AddInvitationApiClient(builder.Configuration);
-
-// Register the RoleApiTokenConfig
-builder.Services.Configure<RoleApiTokenConfig>(builder.Configuration.GetSection(RoleApiTokenConfig.SectionName));
 
 // Add validation for configuration at startup
 builder.Services.AddOptions<EduIdConfig>()
@@ -26,33 +41,19 @@ builder.Services.AddOptions<EduIdConfig>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-// Configure Azure Monitor for application insights and audit logging
-builder.Services.Configure<AzureMonitorConfig>(
-    builder.Configuration.GetSection(AzureMonitorConfig.SectionName));
-
-// Add Application Insights telemetry if configured
-if (!string.IsNullOrEmpty(builder.Configuration.GetSection(AzureMonitorConfig.SectionName)["ConnectionString"]))
-{
-    builder.Services.AddApplicationInsightsTelemetry(options =>
-    {
-        options.ConnectionString = builder.Configuration.GetSection(AzureMonitorConfig.SectionName)["ConnectionString"];
-    });
-}
-
 // Register auditing services
 builder.Services.AddScoped<AzureMonitorAuditingService>();
-builder.Services.AddScoped<IAuditingService>(sp =>
-{
-    var config = sp.GetRequiredService<IOptions<AzureMonitorConfig>>();
-    return sp.GetRequiredService<AzureMonitorAuditingService>();
-});
+builder.Services.AddScoped<IAuditingService, AzureMonitorAuditingService>();
 
 var app = builder.Build();
+
+app.Logger.LogInformation("SecureEduIdInviteProxy starting up");
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureEduIdInviteProxy API v1"));
 }
 
 app.UseHttpsRedirection();
@@ -60,7 +61,6 @@ app.UseHttpsRedirection();
 // Map all invitation endpoints
 app.MapInvitationEndpoints();
 
-Console.WriteLine("UvA.SecureEduIdInviteProxy started");
-
+app.Logger.LogInformation("SecureEduIdInviteProxy running");
 app.Run();
 
