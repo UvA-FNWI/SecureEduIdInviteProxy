@@ -39,7 +39,12 @@ builder.Services.AddInvitationApiClient(builder.Configuration);
 builder.Services.AddOptions<EduIdConfig>()
     .BindConfiguration(EduIdConfig.SectionName)
     .ValidateDataAnnotations()
-    .ValidateOnStart();
+    .ValidateOnStart()
+    .PostConfigure(config =>
+    {
+        // Swap the key and value so we can look up the role name based on the role id
+        config.RoleIds = config.RoleIds.ToDictionary(x => x.Value, x => x.Key);
+    });
 
 // Register auditing services
 builder.Services.AddScoped<AzureMonitorAuditingService>();

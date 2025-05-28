@@ -4,6 +4,9 @@ tag: latest
 certificateName: datanose-nl
 environment: Test
 contentSecurityPolicy: "default-src 'self'"
+
+eduIdRoleIds:
+  thesismatching: 2412
     
 azure:
   keyvaultName: keyvaultName
@@ -17,5 +20,7 @@ azure:
       key: ApplicationInsights__ConnectionString
     - name: dn2-eduid-invitation-api-token
       key: EduId__InvitationApiToken
+    - name: eduid-invite-proxy-thesismatching-role-token
+      key: EduId__RoleTokens__ThesisMatching
 
     

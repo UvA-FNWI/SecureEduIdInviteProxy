@@ -23,5 +23,8 @@ public class EduIdConfig
     public string InvitationApiToken { get; init; } = null!;
     
     [Required(ErrorMessage = "At least one role-specific API token must be configured")]
-    public Dictionary<string, string> RoleApiTokens { get; init; } = new();
+    public Dictionary<string, string> RoleTokens { get; init; } = new();
+    
+    [Required(ErrorMessage = "At least one role-id must be configured")]
+    public Dictionary<string, string> RoleIds { get; set; } = new();
 }

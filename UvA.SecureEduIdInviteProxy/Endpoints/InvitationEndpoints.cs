@@ -15,10 +15,10 @@ namespace UvA.SecureEduIdInviteProxy.Endpoints;
 /// </summary>
 public static partial class InvitationEndpoints
 {
-    [GeneratedRegex(@"^[a-zA-Z0-9-]+$")]
+    [GeneratedRegex(@"^[A-Za-z0-9\/!\-=\?]+$")]
     private static partial Regex ApiTokenRegex();
 
-    private const int MaxTokenLength = 128;
+    private const int MaxTokenLength = 512;
     
     /// <summary>
     /// Maps all invitation endpoints to the application
@@ -71,10 +71,16 @@ public static partial class InvitationEndpoints
            
             Log.Information("Received invitation request for {Count} recipients with role ID: {RoleId}", request.Invites.Count, roleId);
             
-            // Get the role ID from the request
-            if (!eduIdConfig.Value.RoleApiTokens.TryGetValue(roleId, out var expectedToken))
+            // Get the name from the request
+            if (!eduIdConfig.Value.RoleIds.TryGetValue(roleId, out var roleName))
             {
-                Log.Information("No API token configured for role ID {RoleId}", roleId);
+                Log.Warning("Role ID {RoleId} is not configured", roleId);
+                return Results.Unauthorized();
+            }
+            // Get the token based on the rolename
+            if (!eduIdConfig.Value.RoleTokens.TryGetValue(roleName, out var expectedToken))
+            {
+                Log.Error("Role name {RoleName} is not configured", roleName);
                 return Results.Unauthorized();
             }
 
