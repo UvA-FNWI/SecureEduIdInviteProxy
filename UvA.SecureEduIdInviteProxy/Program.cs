@@ -55,11 +55,11 @@ var app = builder.Build();
 app.Logger.LogInformation("SecureEduIdInviteProxy starting up");
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureEduIdInviteProxy API v1"));
-}
+//}
 
 app.UseHttpsRedirection();
 
