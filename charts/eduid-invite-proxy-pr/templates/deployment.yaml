@@ -27,7 +27,7 @@ spec:
             - configMapRef:
                 name: eduid-invite-proxy-config
             - secretRef:
-                name: eduid-invite-proxy-secret
+                name: dn2-secret
           {{- if .Values.azure }}
           volumeMounts:
             - name: secrets-store-inline
