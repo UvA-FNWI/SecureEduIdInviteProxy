@@ -42,5 +42,5 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: "eduid-invite-proxy-secretproviderclass"
+              secretProviderClass: "dn2-secretproviderclass"
       {{- end }}
