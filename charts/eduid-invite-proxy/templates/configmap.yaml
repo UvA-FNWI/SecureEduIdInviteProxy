@@ -5,4 +5,4 @@ metadata:
   namespace: "{{ .Release.Namespace }}"
 data:
   DOTNET_ENVIRONMENT: "{{ .Values.environment }}"
-  EduId__RoleIds__ThesisMatching: "{{ .Values.eduIdsRoleIds.thesismatching }}"
+  EduId__RoleIds__ThesisMatching: "{{ .Values.eduIdRoleIds.thesismatching }}"
