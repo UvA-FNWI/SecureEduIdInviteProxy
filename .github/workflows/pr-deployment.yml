@@ -3,14 +3,20 @@ name: create environment
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull Request Number'
+        required: true
+        type: number
 
 jobs:
   build:
     if: ${{ !github.event.pull_request.draft }}
     runs-on: self-hosted
     environment:
-      name: pr-${{ github.event.number }}
-      url: https://eduid-invite-proxy-pr-${{ github.event.number }}.datanose.nl/
+      name: pr-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+      url: https://eduid-invite-proxy-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number }}.datanose.nl/
 
     steps:
       - name: Checkout
@@ -20,7 +26,7 @@ jobs:
         
       - name: Build and deploy
         env:
-          PR_NUMBER: ${{ github.event.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
           UPDATER_SECRET: ${{ secrets.UPDATER_SECRET_DN }}
         run: |
           set -euxo pipefail
