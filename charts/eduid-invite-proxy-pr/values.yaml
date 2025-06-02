@@ -5,6 +5,9 @@ certificateName: datanose-nl
 environment: Test
 contentSecurityPolicy: "default-src 'self'"
 
+eduId:
+  invitationApiUrl: https://invite.test.surfconext.nl
+
 eduIdRoleIds:
   thesismatching: 2412
     
