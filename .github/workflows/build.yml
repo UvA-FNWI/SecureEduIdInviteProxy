@@ -27,4 +27,4 @@ jobs:
           VERSION=$(date "+1.0.%Y%m%d%H%M%S")
           helm package --version "${VERSION}" --app-version "${VERSION}" charts/eduid-invite-proxy
           helm push "eduid-invite-proxy-${VERSION}.tgz" oci://datanosecr.azurecr.io/helm
-          curl --fail --no-progress-meter "https://eduid-invite-proxy-tst.datanose.nl/gitops-updater?name=eduid-invite-proxy-tst&secret=${UPDATER_SECRET}&version=${VERSION}"
+          curl --fail --no-progress-meter "https://api-v2-tst.datanose.nl/gitops-updater?name=eduid-invite-proxy-tst&secret=${UPDATER_SECRET}&version=${VERSION}"
