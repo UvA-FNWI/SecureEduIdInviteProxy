@@ -5,7 +5,7 @@ namespace UvA.SecureEduIdInviteProxy.Auditing;
 /// <summary>
 /// Implementation of the auditing service that logs to Azure Monitor
 /// </summary>
-public class AzureMonitorAuditingService : IAuditingService
+public class AuditingService : IAuditingService
 {
     /// <inheritdoc />
     public Task LogInviteOperationAsync(string sourceIpAddress, string roleId, bool isSuccessful, IReadOnlyCollection<string> emailAddresses)

@@ -69,7 +69,7 @@ public static partial class InvitationEndpoints
             }
             var roleId = request.RoleIdentifiers.First().ToString();
            
-            Log.Information("Received invitation request for {Count} recipients with role ID: {RoleId}", request.Invites.Count, roleId);
+            Log.Debug("Received invitation request for {Count} recipients with role ID: {RoleId}", request.Invites.Count, roleId);
             
             // Get the name from the request
             if (!eduIdConfig.Value.RoleIds.TryGetValue(roleId, out var roleName))
@@ -87,7 +87,7 @@ public static partial class InvitationEndpoints
             // Verify token
             if (apiToken != expectedToken)
             {
-                Log.Warning("API token {ApiToken} does not match the configured token for role {RoleId}", apiToken, roleId);
+                Log.Warning("API token '{ApiToken}... does not match the configured token for role {RoleId}", apiToken[..Math.Min(4,apiToken.Length)], roleId);
                 return Results.Unauthorized();
             }
 
@@ -107,7 +107,7 @@ public static partial class InvitationEndpoints
 
                 // Log the operation to the audit log
                 await auditingService.LogInviteOperationAsync(sourceIp, roleId, true, request.Invites);
-
+                Log.Information("New invitation successfully created for {Count} recipients", request.Invites.Count);
                 return Results.Ok(response);
             }
            

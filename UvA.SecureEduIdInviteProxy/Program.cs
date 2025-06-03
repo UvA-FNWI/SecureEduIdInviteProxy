@@ -5,6 +5,7 @@ using UvA.SecureEduIdInviteProxy.EduIdInviteApi;
 using UvA.SecureEduIdInviteProxy.Endpoints;
 using UvA.SecureEduIdInviteProxy.Infrastructre;
 using Serilog;
+using Serilog.Filters;
 
 Console.WriteLine("SecureEduIdInviteProxy initializing");
 
@@ -18,6 +19,9 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .ReadFrom.Configuration(context.Configuration)
         .Enrich.FromLogContext()
         .Enrich.WithProperty("ApplicationName", "EduIdInviteProxy")
+        .WriteTo.Logger(lc => lc
+            .Filter.ByExcluding(Matching.FromSource(typeof(AuditingService).FullName!))
+            .WriteTo.Console(outputTemplate:"{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"))
         .WriteTo.ApplicationInsights(
             services.GetRequiredService<TelemetryConfiguration>(),
             TelemetryConverter.Traces);
@@ -47,21 +51,19 @@ builder.Services.AddOptions<EduIdConfig>()
     });
 
 // Register auditing services
-builder.Services.AddScoped<AzureMonitorAuditingService>();
-builder.Services.AddScoped<IAuditingService, AzureMonitorAuditingService>();
+builder.Services.AddScoped<AuditingService>();
+builder.Services.AddScoped<IAuditingService, AuditingService>();
 
 var app = builder.Build();
 
 app.Logger.LogInformation("SecureEduIdInviteProxy starting up");
 
 // Configure the HTTP request pipeline
-//if (app.Environment.IsDevelopment())
-//{
+if (app.Environment.IsDevelopment())
+{
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureEduIdInviteProxy API v1"));
-//}
-
-app.UseHttpsRedirection();
+}
 
 // Map all invitation endpoints
 app.MapInvitationEndpoints();
