@@ -18,7 +18,7 @@ public class AuditingService : IAuditingService
                 Timestamp = DateTime.UtcNow,
                 SourceIpAddress = sourceIpAddress,
                 RoleId = roleId,
-                IsSuccessful = isSuccessful,
+                IsSuccessfull= isSuccessful,
                 EmailAddress = emailAddress,
                 OperationType = "InviteOperation",
                 Category = "AuditLog"

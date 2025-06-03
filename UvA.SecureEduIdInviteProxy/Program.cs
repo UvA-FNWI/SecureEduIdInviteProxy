@@ -20,7 +20,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.FromLogContext()
         .Enrich.WithProperty("ApplicationName", "EduIdInviteProxy")
         .WriteTo.Logger(lc => lc
-            .Filter.ByExcluding(e => e.Properties.ContainsKey("EmailAddress"))
+            .Filter.ByExcluding(e => e.Properties.ContainsKey("AuditData"))
             .WriteTo.Console(outputTemplate:"{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"))
         .WriteTo.ApplicationInsights(
             services.GetRequiredService<TelemetryConfiguration>(),
