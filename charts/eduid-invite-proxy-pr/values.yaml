@@ -1,0 +1,29 @@
+hostname: eduid-invite-proxy.local
+repo: datanosecr.azurecr.io
+tag: latest
+certificateName: datanose-nl
+environment: Test
+contentSecurityPolicy: "default-src 'self'"
+
+eduId:
+  invitationApiUrl: https://invite.test.surfconext.nl
+
+eduIdRoleIds:
+  thesismatching: 2412
+    
+azure:
+  keyvaultName: keyvaultName
+  resourceGroup: resourceGroupName
+  subscriptionId: subscriptionId
+  tenantId: tenantId
+  clientId: clientId
+  identityName: identityName
+  secrets:
+    - name: eduid-invite-proxy-appinsights-connectionstring
+      key: ApplicationInsights__ConnectionString
+    - name: eduid-invite-proxy-invitation-api-token
+      key: EduId__InvitationApiToken
+    - name: eduid-invite-proxy-thesismatching-role-token
+      key: EduId__RoleTokens__ThesisMatching
+
+    

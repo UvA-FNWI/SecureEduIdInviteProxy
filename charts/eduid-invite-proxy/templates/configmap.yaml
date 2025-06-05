@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eduid-invite-proxy-config
+  namespace: "{{ .Release.Namespace }}"
+data:
+  DOTNET_ENVIRONMENT: "{{ .Values.environment }}"
+  EduId__InvitationApiUrl: "{{ .Values.eduId.invitationApiUrl }}"
+  EduId__RoleIds__ThesisMatching: "{{ .Values.eduIdRoleIds.thesismatching }}"

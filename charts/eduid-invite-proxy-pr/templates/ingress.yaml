@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: eduid-invite-proxy-ingress
+  namespace: "{{ .Release.Namespace }}"
+  annotations:
+    kubernetes.io/ingress.class: "{{ .Values.ingressClass }}"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "Strict-Transport-Security: 'max-age=31536000; includeSubDomains' always"; # HSTS
+spec:
+  tls:
+    - hosts:
+        - "{{ .Values.hostname }}"
+  rules:
+    - host: "{{ .Values.hostname }}"
+      http:
+        paths:
+          - path: /swagger
+            pathType: Prefix
+            backend:
+              service:
+                name: eduid-invite-proxy
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: eduid-invite-proxy
+                port:
+                  number: 80

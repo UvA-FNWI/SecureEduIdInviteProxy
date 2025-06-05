@@ -1,0 +1,6 @@
+apiVersion: v2
+name: eduid-invite-proxy-pr
+description: proxy webservice for the Eduid invite API
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
