@@ -27,7 +27,7 @@ spec:
             - configMapRef:
                 name: eduid-invite-proxy-config
             - secretRef:
-                name: dn2-secret
+                name: eduid-invite-proxy-secret
           {{- if .Values.azure }}
           volumeMounts:
             - name: secrets-store-inline
@@ -42,5 +42,5 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: "dn2-secretproviderclass"
+              secretProviderClass: "eduid-invite-proxy-secretproviderclass"
       {{- end }}

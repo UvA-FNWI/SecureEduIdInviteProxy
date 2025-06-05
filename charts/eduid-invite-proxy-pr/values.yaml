@@ -21,7 +21,7 @@ azure:
   secrets:
     - name: eduid-invite-proxy-appinsights-connectionstring
       key: ApplicationInsights__ConnectionString
-    - name: dn2-eduid-invitation-api-token
+    - name: eduid-invite-proxy-invitation-api-token
       key: EduId__InvitationApiToken
     - name: eduid-invite-proxy-thesismatching-role-token
       key: EduId__RoleTokens__ThesisMatching
