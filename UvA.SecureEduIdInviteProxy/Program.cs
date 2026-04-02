@@ -10,6 +10,7 @@ using Serilog.Filters;
 Console.WriteLine("SecureEduIdInviteProxy initializing");
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
 
 builder.Services.AddApplicationInsightsTelemetry();
 
