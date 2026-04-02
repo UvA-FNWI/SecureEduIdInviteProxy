@@ -10,6 +10,7 @@ eduId:
 
 eduIdRoleIds:
   thesismatching: 2412
+  milestones: 2412
     
 azure:
   keyvaultName: keyvaultName
@@ -25,5 +26,7 @@ azure:
       key: EduId__InvitationApiToken
     - name: eduid-invite-proxy-thesismatching-role-token
       key: EduId__RoleTokens__ThesisMatching
+    - name: eduid-invite-proxy-milestones-role-token
+      key: EduId__RoleTokens__Milestones
 
     
