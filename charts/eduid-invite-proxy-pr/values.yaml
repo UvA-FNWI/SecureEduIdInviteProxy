@@ -10,7 +10,7 @@ eduId:
 
 eduIdRoleIds:
   thesismatching: 2412
-  milestones: 2412
+  milestones: 7040
     
 azure:
   keyvaultName: keyvaultName
