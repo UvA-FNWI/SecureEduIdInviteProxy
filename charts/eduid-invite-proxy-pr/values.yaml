@@ -9,7 +9,7 @@ eduId:
   invitationApiUrl: https://invite.test.surfconext.nl
 
 eduIdRoleIds:
-  #  thesismatching: 2412  -> disabled for now to avoid duplicate key when inverting
+  thesismatching: 2412
   milestones: 2412
     
 azure:
@@ -24,8 +24,8 @@ azure:
       key: ApplicationInsights__ConnectionString
     - name: eduid-invite-proxy-invitation-api-token
       key: EduId__InvitationApiToken
-#    - name: eduid-invite-proxy-thesismatching-role-token
-#      key: EduId__RoleTokens__ThesisMatching
+    - name: eduid-invite-proxy-thesismatching-role-token
+      key: EduId__RoleTokens__ThesisMatching
     - name: eduid-invite-proxy-milestones-role-token
       key: EduId__RoleTokens__Milestones
 
