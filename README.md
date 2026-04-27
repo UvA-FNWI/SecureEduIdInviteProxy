@@ -27,30 +27,28 @@ The solution follows a vertical slice architecture with clear separation between
 
 The application uses the standard .NET configuration system with the following key sections:
 
-### Role API Tokens
-
-Maps role IDs to their corresponding API tokens:
-
-```json
-{
-  "RoleApiTokens": {
-    "Tokens": {
-      "role-id-1": "api-token-for-role-1",
-      "role-id-2": "api-token-for-role-2"
-    }
-  }
-}
-```
-
 ### EduId Configuration
 
-Configuration for the EduId API:
+| Setting | Description |
+|---|---|
+| `InvitationApiUrl` | Base URL of the SURFconext Invite API |
+| `InvitationApiToken` | API token for authenticating with the SURFconext Invite API |
+| `RoleIds` | Maps each internal role name to its numeric SURFconext role ID |
+| `RoleTokens` | Maps each internal role name to the token the calling application must send |
+
+The `RoleIds` and `RoleTokens` together enforce that a caller can only invite users for the role they are authorised for. The numeric role ID is assigned by SURF when you create a role in the SURFconext Invite admin panel, it is visible in the URL.
 
 ```json
 {
   "EduId": {
-    "BaseUrl": "https://api.eduid.example.com",
-    "ApiToken": "your-eduid-api-token"
+    "InvitationApiUrl": "<url>",
+    "InvitationApiToken": "<token>",
+    "RoleIds": {
+      "<role-name>": "<numeric-surf-role-id>"
+    },
+    "RoleTokens": {
+      "<role-name>": "<api-token>"
+    }
   }
 }
 ```

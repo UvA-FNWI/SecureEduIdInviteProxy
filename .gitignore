@@ -440,6 +440,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Local secrets
+appsettings.local.json
+
 # JetBrains Rider
 .idea/
 *.sln.iml
