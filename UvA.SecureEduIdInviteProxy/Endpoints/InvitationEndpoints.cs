@@ -1,12 +1,9 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Serilog;
-using System.Text.RegularExpressions;
 using UvA.SecureEduIdInviteProxy.Auditing;
 using UvA.SecureEduIdInviteProxy.EduIdInviteApi;
 using UvA.SecureEduIdInviteProxy.EduIdInviteApi.Dto;
-using UvA.SecureEduIdInviteProxy.Infrastructre;
 
 namespace UvA.SecureEduIdInviteProxy.Endpoints;
 
@@ -15,11 +12,6 @@ namespace UvA.SecureEduIdInviteProxy.Endpoints;
 /// </summary>
 public static partial class InvitationEndpoints
 {
-    [GeneratedRegex(@"^[A-Za-z0-9\/!\-=\?]+$")]
-    private static partial Regex ApiTokenRegex();
-
-    private const int MaxTokenLength = 512;
-    
     /// <summary>
     /// Maps all invitation endpoints to the application
     /// </summary>
@@ -28,8 +20,13 @@ public static partial class InvitationEndpoints
     public static WebApplication MapInvitationEndpoints(this WebApplication app)
     {
         app.MapPost("/api/external/v1/invitations", CreateInvitation)
-            .WithName("CreateInvitation")
-            .WithOpenApi();
+            .WithName("CreateInvitation");
+
+        app.MapGet("/api/external/v1/user_roles/search/{roleId}/{guests}", SearchUserRoles)
+            .WithName("SearchUserRoles");
+
+        app.MapPut("/api/proxy/v1/extend/{roleId}", UpdateUserRole)
+            .WithName("UpdateUserRole");
             
         return app;
     }
@@ -39,24 +36,14 @@ public static partial class InvitationEndpoints
     /// </summary>
     private static async Task<IResult> CreateInvitation(
         [FromBody] CreateInvitation request,
-        [FromHeader(Name = "X-API-TOKEN")] string apiToken,
-        IOptions<EduIdConfig> eduIdConfig,
         IInvitationApiClient invitationApiClient,
         IAuditingService auditingService,
         IHttpContextAccessor httpContextAccessor,
+        ApiKeyService apiKeyService,
         CancellationToken cancellationToken)
     {
         try
         {
-            // Check that the token is valid (not empty and only contains alphanumeric chars or a dash)
-            if (string.IsNullOrEmpty(apiToken) ||
-                apiToken.Length > MaxTokenLength ||
-                !ApiTokenRegex().IsMatch(apiToken))
-            {
-                Log.Debug("Invalid API token received");
-                return Results.Unauthorized();
-            }
-
             // Verify that only one role ID is provided
             if (request.RoleIdentifiers.Count != 1)
             {
@@ -67,29 +54,12 @@ public static partial class InvitationEndpoints
                     Detail = "One and only one role identifier must be provided"
                 });
             }
-            var roleId = request.RoleIdentifiers.First().ToString();
-           
-            Log.Debug("Received invitation request for {Count} recipients with role ID: {RoleId}", request.Invites.Count, roleId);
-            
-            // Get the name from the request
-            if (!eduIdConfig.Value.RoleIds.TryGetValue(roleId, out var roleName))
-            {
-                Log.Warning("Role ID {RoleId} is not configured", roleId);
-                return Results.Unauthorized();
-            }
-            // Get the token based on the rolename
-            if (!eduIdConfig.Value.RoleTokens.TryGetValue(roleName, out var expectedToken))
-            {
-                Log.Error("Role name {RoleName} is not configured", roleName);
-                return Results.Unauthorized();
-            }
+            var roleId = request.RoleIdentifiers.First();
 
-            // Verify token
-            if (apiToken != expectedToken)
-            {
-                Log.Warning("API token '{ApiToken}... does not match the configured token for role {RoleId}", apiToken[..Math.Min(4,apiToken.Length)], roleId);
+            if (!apiKeyService.CheckKey(roleId))
                 return Results.Unauthorized();
-            }
+            
+            Log.Debug("Received invitation request for {Count} recipients with role ID: {RoleId}", request.Invites.Count, roleId);
 
             var sourceIp = httpContextAccessor.HttpContext!.Connection.RemoteIpAddress!.ToString();
             try
@@ -106,7 +76,7 @@ public static partial class InvitationEndpoints
                 }
 
                 // Log the operation to the audit log
-                await auditingService.LogInviteOperationAsync(sourceIp, roleId, true, request.Invites);
+                await auditingService.LogInviteOperationAsync(sourceIp, roleId.ToString(), true, request.Invites);
                 Log.Information("New invitation successfully created for {Count} recipients", request.Invites.Count);
                 return Results.Ok(response);
             }
@@ -117,7 +87,7 @@ public static partial class InvitationEndpoints
                 Log.Warning(ex, "Invitation service returned error {StatusCode}, {@Request}", ex.StatusCode.Value, request);
 
                 // Log the operation to the audit log
-                await auditingService.LogInviteOperationAsync(sourceIp, roleId, false, request.Invites);
+                await auditingService.LogInviteOperationAsync(sourceIp, roleId.ToString(), false, request.Invites);
                 
                 return Results.Problem(
                     title: "Error from invitation service",
