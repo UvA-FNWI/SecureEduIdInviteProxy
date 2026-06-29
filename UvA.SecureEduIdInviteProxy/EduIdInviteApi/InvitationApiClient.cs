@@ -95,7 +95,8 @@ public class InvitationApiClient : IInvitationApiClient
         var response = await httpClient.PutAsJsonAsync("/api/external/v1/user_roles", new
             {
                 userRoleId, 
-                endDate = endDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+endDate = endDate.ToUniversalTime()
+      .ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")
             },
             jsonOptions, ct);
         
