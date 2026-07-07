@@ -1,11 +1,10 @@
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using UvA.SecureEduIdInviteProxy.Auditing;
 using UvA.SecureEduIdInviteProxy.EduIdInviteApi;
 using UvA.SecureEduIdInviteProxy.Endpoints;
 using UvA.SecureEduIdInviteProxy.Infrastructre;
 using Serilog;
-using Serilog.Filters;
 
 Console.WriteLine("SecureEduIdInviteProxy initializing");
 
@@ -34,8 +33,24 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "SecureEduIdInviteProxy API", Version = "v1" });
+    c.AddSecurityDefinition("Api-Key",
+        new OpenApiSecurityScheme
+        {
+            Description = "Enter your API key.",
+            Name = "X-API-TOKEN",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey
+        });
+    c.AddSecurityRequirement(doc =>
+    {
+        var securityRequirement = new OpenApiSecurityRequirement();
+        securityRequirement.Add(new OpenApiSecuritySchemeReference("Api-Key", doc), []);
+        return securityRequirement;
+    });
 });
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<ApiKeyService>();
 
 // Register the SurfConext Invitation API client
 builder.Services.AddInvitationApiClient(builder.Configuration);
