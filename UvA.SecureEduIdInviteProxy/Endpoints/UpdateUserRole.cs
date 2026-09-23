@@ -26,14 +26,20 @@ public partial class InvitationEndpoints
             return Results.Unauthorized();
 
         var result = await invitationApiClient.FindUserRoles(roleId, true, request.Query, 0, ct);
-        if (result.Content.Length != 1)
+        var rows = result.Content
+            .Where(r => string.Equals(r.Email, request.Query, StringComparison.CurrentCultureIgnoreCase))
+            .ToList();
+        if (rows.Count == 0)
+            rows = result.Content.ToList();
+        
+        if (rows.Count != 1)
             return Results.BadRequest(new
             {
                 error = "Unexpected result count",
-                count = result.Content.Length
+                count = rows.Count
             });
 
-        await invitationApiClient.UpdateUserRole(result.Content[0].Id, request.EndDate, ct);
+        await invitationApiClient.UpdateUserRole(rows[0].Id, request.EndDate, ct);
 
         return Results.Ok();
     }

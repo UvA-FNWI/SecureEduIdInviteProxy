@@ -79,7 +79,7 @@ public class InvitationApiClient : IInvitationApiClient
         CancellationToken ct)
     {
         var response = await httpClient.GetFromJsonAsync<UserRolesResponse>(
-                $"/api/external/v1/user_roles/search/{roleId}/{guests}?query={query}&pageNumber={pageNumber}", ct);
+                $"/api/external/v1/user_roles/search/{roleId}/{guests}?query={query}&pageNumber={pageNumber}&pageSize=50", ct);
 
         return response ?? throw new Exception("No response from invitation service");
     }
